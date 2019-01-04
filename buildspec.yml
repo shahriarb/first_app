@@ -1,0 +1,25 @@
+version: 0.2
+
+env:
+  variables:
+    RUBY_VERSION: "2.4"
+
+phases:
+  install:
+    commands:
+      - apt-get -y install ca-certificates software-properties-common
+      - add-apt-repository -y ppa:brightbox/ruby-ng
+      - apt-get update
+      - apt-get -y install "ruby${RUBY_VERSION}" "ruby${RUBY_VERSION}-dev"
+      - gem install bundler --version='1.17'
+  pre_build:
+    commands:
+      - BUILD_DATE=$(TZ=utc date +%Y-%m-%dT%H-%M-%SZ)
+      - LOCAL_IMAGE=$IMAGE_REPO_NAME:latest
+      - ECR_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - BUILD_TAG=build-id_$(echo $CODEBUILD_BUILD_ID | tr ":" "_")
+      - SOURCE_VERSION_TAG=source-version_${CODEBUILD_RESOLVED_SOURCE_VERSION}_${BUILD_DATE}
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
